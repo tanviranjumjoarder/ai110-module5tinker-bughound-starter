@@ -1,9 +1,13 @@
+import ast
 import json
 import os
 import re
 from typing import Any, Dict, List, Optional, Tuple
 
 from reliability.risk_assessor import assess_risk
+
+# Severities the risk assessor understands. Anything else from the model is rejected.
+ALLOWED_SEVERITIES = {"low": "Low", "medium": "Medium", "high": "High"}
 
 # Directory where prompt templates live, relative to this file
 PROMPTS_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "prompts")
@@ -83,10 +87,24 @@ class BugHoundAgent:
             self._log("ANALYZE", f"API Error: {str(e)}. Falling back to heuristics.")
             return self._heuristic_analyze(code_snippet)
 
+        # GeminiClient swallows API errors and returns "", so an empty reply means
+        # "the model was unavailable", not "no issues". Say so in the trace.
+        if not (raw or "").strip():
+            self._log("ANALYZE", "LLM returned an empty response (API error, quota, or safety block). Falling back to heuristics.")
+            return self._heuristic_analyze(code_snippet)
+
         issues = self._parse_json_array_of_issues(raw)
 
         if issues is None:
             self._log("ANALYZE", "LLM output was not parseable JSON. Falling back to heuristics.")
+            return self._heuristic_analyze(code_snippet)
+
+        # Reliability change (Part 2): validate the model's issues before trusting them.
+        # The risk scorer only deducts points for Low/Medium/High, so an issue labeled
+        # "Critical" or "Unknown" would silently count as zero risk.
+        problem = self._validate_issues(issues)
+        if problem:
+            self._log("ANALYZE", f"LLM issues failed validation ({problem}). Falling back to heuristics.")
             return self._heuristic_analyze(code_snippet)
 
         return issues
@@ -120,6 +138,14 @@ class BugHoundAgent:
             self._log("ACT", "LLM returned empty output. Falling back to heuristic fixer.")
             return self._heuristic_fix(code_snippet, issues)
 
+        # Guardrail: a "fix" that is not Python, or that deletes functions the original
+        # defined, is not a fix. (MockClient's placeholder comment used to replace the
+        # whole file in Heuristic mode.)
+        problem = self._check_fix_shape(code_snippet, cleaned)
+        if problem:
+            self._log("ACT", f"LLM fix rejected ({problem}). Falling back to heuristic fixer.")
+            return self._heuristic_fix(code_snippet, issues)
+
         return cleaned
 
     # ----------------------------
@@ -128,7 +154,8 @@ class BugHoundAgent:
     def _heuristic_analyze(self, code: str) -> List[Dict[str, str]]:
         issues: List[Dict[str, str]] = []
 
-        if "print(" in code:
+        # Look for real print calls, not the word "print(" inside a comment.
+        if "print(" in self._strip_comments(code):
             issues.append(
                 {
                     "type": "Code Quality",
@@ -186,6 +213,40 @@ class BugHoundAgent:
                 return self._normalize_issues(parsed2)
 
         return None
+
+    def _validate_issues(self, issues: List[Dict[str, str]]) -> Optional[str]:
+        """
+        Normalize severity casing in place ("high" -> "High") and return a short
+        description of the first problem found, or None if every issue is usable.
+        """
+        for issue in issues:
+            sev = str(issue.get("severity", "")).strip().lower()
+            if sev not in ALLOWED_SEVERITIES:
+                return f"severity '{issue.get('severity')}' is not Low/Medium/High"
+            issue["severity"] = ALLOWED_SEVERITIES[sev]
+            if not issue.get("msg"):
+                return "an issue has an empty message"
+        return None
+
+    def _check_fix_shape(self, original: str, fixed: str) -> Optional[str]:
+        """Return why a proposed fix is unusable, or None if it looks like a real fix."""
+        try:
+            fixed_tree = ast.parse(fixed)
+        except SyntaxError as e:
+            return f"not valid Python: {e.msg} on line {e.lineno}"
+        try:
+            original_tree = ast.parse(original)
+        except SyntaxError:
+            return None  # can't compare against broken input; let the risk layer judge
+        def names(tree):
+            return {n.name for n in ast.walk(tree) if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef))}
+        missing = names(original_tree) - names(fixed_tree)
+        if missing:
+            return f"it deletes {', '.join(sorted(missing))}"
+        return None
+
+    def _strip_comments(self, code: str) -> str:
+        return "\n".join(line.split("#", 1)[0] for line in code.splitlines())
 
     def _normalize_issues(self, arr: List[Any]) -> List[Dict[str, str]]:
         issues: List[Dict[str, str]] = []
