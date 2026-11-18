@@ -107,3 +107,36 @@ You should see tests covering:
 * Risk scoring and guardrails
 * Heuristic fallbacks when LLM output is invalid
 * End-to-end agent workflow shape
+
+---
+
+## My changes (Week 9 Tinker)
+
+BugHound used to auto-approve fixes that changed program behavior, accept model output with severities it didn't understand, and, in the app's Heuristic mode, "fix" files by replacing them with a single comment. I added guardrails so the agent catches these cases and hands them to a human:
+
+| Change | Where | Why |
+|---|---|---|
+| Model issues must have severity Low/Medium/High, or BugHound falls back to heuristics | `bughound_agent.py` (`_validate_issues`) | A "Critical" issue used to count as zero risk: score 100, auto-fix YES |
+| A model fix that isn't valid Python or deletes a function is rejected | `bughound_agent.py` (`_check_fix_shape`) | MockClient's placeholder used to replace the whole file |
+| A fix that isn't valid Python is high risk and never auto-applied | `reliability/risk_assessor.py` | The heuristic fixer breaks indentation for a nested `except:` |
+| A fix that removes or rewrites `print()` calls is never auto-applied | `reliability/risk_assessor.py` | print → logging hides output (and `logging.info("Hello", name)` is a bug), yet it was rated LOW / auto-fix YES |
+| `print(` inside comments is ignored; the temperature slider now reaches Gemini | `bughound_agent.py`, `llm_client.py` | False positive; the setting was silently ignored |
+
+Results on the same inputs:
+
+```text
+print_spam.py (heuristic)    before: low 95, auto-fix YES   after: medium 65, auto-fix NO
+print_spam.py (Gemini)       before: low 95, auto-fix YES   after: medium 65, auto-fix NO
+nested bare except           before: medium 55 (broken code) after: high 0, "not valid Python"
+comments-only file           before: low 95, auto-fix YES   after: no issues, code unchanged
+cleanish.py                  before: low 100, auto-fix YES  after: low 100, auto-fix YES (still allowed)
+```
+
+Tests: `pytest` runs 18 tests, all passing. On the original starter code, 9 of the 10 new tests in `tests/test_guardrails.py` fail. Full runs (offline, app Heuristic mode, Gemini, tests with and without the guardrails) are in [`evidence/`](evidence/). To rerun all inputs offline:
+
+```bash
+python evidence/run_all_inputs.py          # pure heuristics
+python evidence/run_all_inputs.py --mock   # what the app's "Heuristic only" mode does
+```
+
+The reflection (workflow, rules, failure modes, heuristic vs Gemini, human-review triggers, improvement idea) is in [`model_card.md`](model_card.md).

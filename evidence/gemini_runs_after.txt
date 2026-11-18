@@ -1,0 +1,174 @@
+======================================================================
+FILE: mixed_issues.py (Gemini mode)
+RAW ANALYZER REPLY:
+[
+  {
+    "type": "Maintainability",
+    "severity": "Low",
+    "msg": "TODO comment indicates incomplete input validation implementation."
+  },
+  {
+    "type": "Readability",
+    "severity": "Low",
+    "msg": "Use of print statement for routine output in non-demo code."
+  },
+  {
+    "type": "Correctness",
+    "severity": "High",
+    "msg": "Bare except clause catches all exceptions including system exits and keyboard interrupts, which can mask unexpected errors."
+  }
+]
+ISSUES: [
+ {
+  "type": "Maintainability",
+  "severity": "Low",
+  "msg": "TODO comment indicates incomplete input validation implementation."
+ },
+ {
+  "type": "Readability",
+  "severity": "Low",
+  "msg": "Use of print statement for routine output in non-demo code."
+ },
+ {
+  "type": "Correctness",
+  "severity": "High",
+  "msg": "Bare except clause catches all exceptions including system exits and keyboard interrupts, which can mask unexpected errors."
+ }
+]
+RISK: high 15 autofix: False ['Low severity issue detected.', 'Low severity issue detected.', 'High severity issue detected.', 'Bare except was modified, verify correctness.', 'Fix removes or rewrites 1 print() call(s), which changes what users see.']
+FIXED CODE:
+def compute_ratio(x, y):
+    try:
+        return x / y
+    except Exception:
+        return 0
+DIFF:
+--- original
++++ fixed
+@@ -1,9 +1,5 @@
+-# TODO: Replace this with real input validation (this comment is intentional)
+-
+ def compute_ratio(x, y):
+-    print("computing ratio...")
+-
+     try:
+         return x / y
+-    except:
++    except Exception:
+         return 0
+TRACE:
+  PLAN: Planning a quick scan + fix proposal workflow.
+  ANALYZE: Using LLM analyzer.
+  ANALYZE: Found 3 issue(s).
+  ACT: Using LLM fixer.
+  TEST: Risk assessed as high (score=15).
+  REFLECT: Fix is not safe enough to auto-apply. Human review recommended.
+======================================================================
+FILE: print_spam.py (Gemini mode)
+RAW ANALYZER REPLY:
+[
+  {
+    "type": "Readability",
+    "severity": "Low",
+    "msg": "Use of print statements in a function instead of logging or returning values, which can clutter standard output."
+  }
+]
+ISSUES: [
+ {
+  "type": "Readability",
+  "severity": "Low",
+  "msg": "Use of print statements in a function instead of logging or returning values, which can clutter standard output."
+ }
+]
+RISK: medium 65 autofix: False ['Low severity issue detected.', 'Fix removes or rewrites 1 print() call(s), which changes what users see.']
+FIXED CODE:
+import logging
+
+def greet(name, verbose=False):
+    if verbose:
+        logging.debug("Entering greet()")
+
+    print("Hello", name)
+    print("Welcome!")
+
+    return True
+DIFF:
+--- original
++++ fixed
+@@ -1,6 +1,8 @@
++import logging
++
+ def greet(name, verbose=False):
+     if verbose:
+-        print("Entering greet()")
++        logging.debug("Entering greet()")
+ 
+     print("Hello", name)
+     print("Welcome!")
+TRACE:
+  PLAN: Planning a quick scan + fix proposal workflow.
+  ANALYZE: Using LLM analyzer.
+  ANALYZE: Found 1 issue(s).
+  ACT: Using LLM fixer.
+  TEST: Risk assessed as medium (score=65).
+  REFLECT: Fix is not safe enough to auto-apply. Human review recommended.
+======================================================================
+FILE: flaky_try_except.py (Gemini mode)
+RAW ANALYZER REPLY:
+[
+  {
+    "type": "Resource Management",
+    "severity": "High",
+    "msg": "File is not guaranteed to be closed if an exception occurs during read(). Use a 'with' statement instead."
+  },
+  {
+    "type": "Error Handling",
+    "severity": "Medium",
+    "msg": "Bare 'except:' clause catches all exceptions including system exits and keyboard interrupts, which can mask bugs."
+  }
+]
+ISSUES: [
+ {
+  "type": "Resource Management",
+  "severity": "High",
+  "msg": "File is not guaranteed to be closed if an exception occurs during read(). Use a 'with' statement instead."
+ },
+ {
+  "type": "Error Handling",
+  "severity": "Medium",
+  "msg": "Bare 'except:' clause catches all exceptions including system exits and keyboard interrupts, which can mask bugs."
+ }
+]
+RISK: high 35 autofix: False ['High severity issue detected.', 'Medium severity issue detected.', 'Bare except was modified, verify correctness.']
+FIXED CODE:
+def load_text_file(path):
+    try:
+        with open(path, "r") as f:
+            data = f.read()
+    except Exception:
+        return None
+
+    return data
+DIFF:
+--- original
++++ fixed
+@@ -1,9 +1,8 @@
+ def load_text_file(path):
+     try:
+-        f = open(path, "r")
+-        data = f.read()
+-        f.close()
+-    except:
++        with open(path, "r") as f:
++            data = f.read()
++    except Exception:
+         return None
+ 
+     return data
+TRACE:
+  PLAN: Planning a quick scan + fix proposal workflow.
+  ANALYZE: Using LLM analyzer.
+  ANALYZE: Found 2 issue(s).
+  ACT: Using LLM fixer.
+  TEST: Risk assessed as high (score=35).
+  REFLECT: Fix is not safe enough to auto-apply. Human review recommended.

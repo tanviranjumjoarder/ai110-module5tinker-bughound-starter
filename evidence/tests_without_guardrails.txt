@@ -1,0 +1,13 @@
+$ pytest tests/test_guardrails.py   # on the ORIGINAL starter code
+>       assert "failed validation" in logs_text(result)
+E       AssertionError: assert 'failed validation' in 'Planning a quick scan + fix proposal workflow. | Using LLM analyzer. | Found 1 issue(s). | Using LLM fixer. | Risk assessed as low (score=100). | Fix appears safe enough to auto-apply under current policy.'
+FAILED tests/test_guardrails.py::test_unknown_severity_from_model_falls_back_to_heuristics
+FAILED tests/test_guardrails.py::test_severity_casing_is_normalized_not_rejected
+FAILED tests/test_guardrails.py::test_empty_model_reply_is_logged_as_unavailable
+FAILED tests/test_guardrails.py::test_fix_that_deletes_the_function_is_rejected
+FAILED tests/test_guardrails.py::test_fix_that_is_not_python_is_rejected - As...
+FAILED tests/test_guardrails.py::test_invalid_python_fix_is_high_risk - Asser...
+FAILED tests/test_guardrails.py::test_heuristic_print_fix_is_not_auto_applied
+FAILED tests/test_guardrails.py::test_gemini_style_print_to_logger_fix_is_not_auto_applied
+FAILED tests/test_guardrails.py::test_print_inside_a_comment_is_not_flagged
+9 failed, 1 passed in 0.05s

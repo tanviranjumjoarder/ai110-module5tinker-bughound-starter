@@ -1,0 +1,130 @@
+======================================================================
+FILE: mixed_issues.py (Gemini mode)
+RAW ANALYZER REPLY:
+[
+  {
+    "type": "Maintainability",
+    "severity": "Low",
+    "msg": "TODO comment indicates incomplete code or missing real input validation."
+  },
+  {
+    "type": "Readability",
+    "severity": "Low",
+    "msg": "Use of print statement in non-demo function code."
+  },
+  {
+    "type": "Correctness",
+    "severity": "High",
+    "msg": "Bare except clause catches all exceptions, potentially masking unexpected errors like NameError or TypeError."
+  }
+]
+ISSUES: [
+ {
+  "type": "Maintainability",
+  "severity": "Low",
+  "msg": "TODO comment indicates incomplete code or missing real input validation."
+ },
+ {
+  "type": "Readability",
+  "severity": "Low",
+  "msg": "Use of print statement in non-demo function code."
+ },
+ {
+  "type": "Correctness",
+  "severity": "High",
+  "msg": "Bare except clause catches all exceptions, potentially masking unexpected errors like NameError or TypeError."
+ }
+]
+RISK: medium 45 autofix: False ['Low severity issue detected.', 'Low severity issue detected.', 'High severity issue detected.', 'Bare except was modified, verify correctness.']
+FIXED CODE:
+def validate_input(x, y):
+    if not isinstance(x, (int, float)) or not isinstance(y, (int, float)):
+        raise TypeError("Inputs must be numbers")
+    return x, y
+
+def compute_ratio(x, y):
+    validate_input(x, y)
+
+    try:
+        return x / y
+    except ZeroDivisionError:
+        return 0
+DIFF:
+--- original
++++ fixed
+@@ -1,9 +1,12 @@
+-# TODO: Replace this with real input validation (this comment is intentional)
++def validate_input(x, y):
++    if not isinstance(x, (int, float)) or not isinstance(y, (int, float)):
++        raise TypeError("Inputs must be numbers")
++    return x, y
+ 
+ def compute_ratio(x, y):
+-    print("computing ratio...")
++    validate_input(x, y)
+ 
+     try:
+         return x / y
+-    except:
++    except ZeroDivisionError:
+         return 0
+TRACE:
+  PLAN: Planning a quick scan + fix proposal workflow.
+  ANALYZE: Using LLM analyzer.
+  ANALYZE: Found 3 issue(s).
+  ACT: Using LLM fixer.
+  TEST: Risk assessed as medium (score=45).
+  REFLECT: Fix is not safe enough to auto-apply. Human review recommended.
+======================================================================
+FILE: print_spam.py (Gemini mode)
+RAW ANALYZER REPLY:
+[
+  {
+    "type": "Maintainability",
+    "severity": "Low",
+    "msg": "Use of print statements for logging/output in non-demo code."
+  }
+]
+ISSUES: [
+ {
+  "type": "Maintainability",
+  "severity": "Low",
+  "msg": "Use of print statements for logging/output in non-demo code."
+ }
+]
+RISK: low 95 autofix: True ['Low severity issue detected.']
+FIXED CODE:
+import logging
+
+logger = logging.getLogger(__name__)
+
+def greet(name, verbose=False):
+    if verbose:
+        logger.debug("Entering greet()")
+
+    print("Hello", name)
+    print("Welcome!")
+
+    return True
+DIFF:
+--- original
++++ fixed
+@@ -1,6 +1,10 @@
++import logging
++
++logger = logging.getLogger(__name__)
++
+ def greet(name, verbose=False):
+     if verbose:
+-        print("Entering greet()")
++        logger.debug("Entering greet()")
+ 
+     print("Hello", name)
+     print("Welcome!")
+TRACE:
+  PLAN: Planning a quick scan + fix proposal workflow.
+  ANALYZE: Using LLM analyzer.
+  ANALYZE: Found 1 issue(s).
+  ACT: Using LLM fixer.
+  TEST: Risk assessed as low (score=95).
+  REFLECT: Fix appears safe enough to auto-apply under current policy.

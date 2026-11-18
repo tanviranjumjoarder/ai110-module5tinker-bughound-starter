@@ -1,0 +1,99 @@
+======================================================================
+cleanish.py
+issues: []
+risk: low 100 autofix: True ['No significant risks detected.']
+diff:
+(none)
+trace: PLAN: Planning a quick scan + fix proposal workflow. | ANALYZE: Using LLM analyzer. | ANALYZE: LLM output was not parseable JSON. Falling back to heuristics. | ANALYZE: Found 0 issue(s). | ACT: No issues, returning original code unchanged. | TEST: Risk assessed as low (score=100). | REFLECT: Fix appears safe enough to auto-apply under current policy.
+======================================================================
+flaky_try_except.py
+issues: [('Reliability', 'High')]
+risk: high 5 autofix: False ['High severity issue detected.', 'Fixed code is much shorter than original.', 'Return statements may have been removed.', 'Bare except was modified, verify correctness.']
+diff:
+--- 
++++ 
+@@ -1,9 +1 @@
+-def load_text_file(path):
+-    try:
+-        f = open(path, "r")
+-        data = f.read()
+-        f.close()
+-    except:
+-        return None
+-
+-    return data
++# MockClient: no rewrite available in offline mode.
+trace: PLAN: Planning a quick scan + fix proposal workflow. | ANALYZE: Using LLM analyzer. | ANALYZE: LLM output was not parseable JSON. Falling back to heuristics. | ANALYZE: Found 1 issue(s). | ACT: Using LLM fixer. | TEST: Risk assessed as high (score=5). | REFLECT: Fix is not safe enough to auto-apply. Human review recommended.
+======================================================================
+mixed_issues.py
+issues: [('Code Quality', 'Low'), ('Reliability', 'High'), ('Maintainability', 'Medium')]
+risk: high 0 autofix: False ['Low severity issue detected.', 'High severity issue detected.', 'Medium severity issue detected.', 'Fixed code is much shorter than original.', 'Return statements may have been removed.', 'Bare except was modified, verify correctness.']
+diff:
+--- 
++++ 
+@@ -1,9 +1 @@
+-# TODO: Replace this with real input validation (this comment is intentional)
+-
+-def compute_ratio(x, y):
+-    print("computing ratio...")
+-
+-    try:
+-        return x / y
+-    except:
+-        return 0
++# MockClient: no rewrite available in offline mode.
+trace: PLAN: Planning a quick scan + fix proposal workflow. | ANALYZE: Using LLM analyzer. | ANALYZE: LLM output was not parseable JSON. Falling back to heuristics. | ANALYZE: Found 3 issue(s). | ACT: Using LLM fixer. | TEST: Risk assessed as high (score=0). | REFLECT: Fix is not safe enough to auto-apply. Human review recommended.
+======================================================================
+print_spam.py
+issues: [('Code Quality', 'Low')]
+risk: medium 45 autofix: False ['Low severity issue detected.', 'Fixed code is much shorter than original.', 'Return statements may have been removed.']
+diff:
+--- 
++++ 
+@@ -1,8 +1 @@
+-def greet(name, verbose=False):
+-    if verbose:
+-        print("Entering greet()")
+-
+-    print("Hello", name)
+-    print("Welcome!")
+-
+-    return True
++# MockClient: no rewrite available in offline mode.
+trace: PLAN: Planning a quick scan + fix proposal workflow. | ANALYZE: Using LLM analyzer. | ANALYZE: LLM output was not parseable JSON. Falling back to heuristics. | ANALYZE: Found 1 issue(s). | ACT: Using LLM fixer. | TEST: Risk assessed as medium (score=45). | REFLECT: Fix is not safe enough to auto-apply. Human review recommended.
+======================================================================
+(empty file)
+issues: []
+risk: high 0 autofix: False ['No fix was produced.']
+diff:
+(none)
+trace: PLAN: Planning a quick scan + fix proposal workflow. | ANALYZE: Using LLM analyzer. | ANALYZE: LLM output was not parseable JSON. Falling back to heuristics. | ANALYZE: Found 0 issue(s). | ACT: No issues, returning original code unchanged. | ACT: No fix produced (refused, error, or empty output). | TEST: Risk assessed as high (score=0). | REFLECT: Fix is not safe enough to auto-apply. Human review recommended.
+======================================================================
+(comments only)
+issues: [('Code Quality', 'Low')]
+risk: low 95 autofix: True ['Low severity issue detected.']
+diff:
+--- 
++++ 
+@@ -1,2 +1 @@
+-# just a comment
+-# print( is mentioned here but not called
++# MockClient: no rewrite available in offline mode.
+trace: PLAN: Planning a quick scan + fix proposal workflow. | ANALYZE: Using LLM analyzer. | ANALYZE: LLM output was not parseable JSON. Falling back to heuristics. | ANALYZE: Found 1 issue(s). | ACT: Using LLM fixer. | TEST: Risk assessed as low (score=95). | REFLECT: Fix appears safe enough to auto-apply under current policy.
+======================================================================
+(nested bare except)
+issues: [('Reliability', 'High')]
+risk: high 5 autofix: False ['High severity issue detected.', 'Fixed code is much shorter than original.', 'Return statements may have been removed.', 'Bare except was modified, verify correctness.']
+diff:
+--- 
++++ 
+@@ -1,7 +1 @@
+-def f(items):
+-    for x in items:
+-        try:
+-            go(x)
+-        except:
+-            pass
+-    return True
++# MockClient: no rewrite available in offline mode.
+trace: PLAN: Planning a quick scan + fix proposal workflow. | ANALYZE: Using LLM analyzer. | ANALYZE: LLM output was not parseable JSON. Falling back to heuristics. | ANALYZE: Found 1 issue(s). | ACT: Using LLM fixer. | TEST: Risk assessed as high (score=5). | REFLECT: Fix is not safe enough to auto-apply. Human review recommended.

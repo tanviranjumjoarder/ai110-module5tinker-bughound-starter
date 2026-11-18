@@ -1,0 +1,84 @@
+======================================================================
+cleanish.py
+issues: []
+risk: low 100 autofix: True ['No significant risks detected.']
+diff:
+(none)
+trace: PLAN: Planning a quick scan + fix proposal workflow. | ANALYZE: Using heuristic analyzer (offline mode). | ANALYZE: Found 0 issue(s). | ACT: No issues, returning original code unchanged. | TEST: Risk assessed as low (score=100). | REFLECT: Fix appears safe enough to auto-apply under current policy.
+======================================================================
+flaky_try_except.py
+issues: [('Reliability', 'High')]
+risk: medium 55 autofix: False ['High severity issue detected.', 'Bare except was modified, verify correctness.']
+diff:
+--- 
++++ 
+@@ -6 +6,2 @@
+-    except:
++    except Exception as e:
++        # [BugHound] log or handle the error
+trace: PLAN: Planning a quick scan + fix proposal workflow. | ANALYZE: Using heuristic analyzer (offline mode). | ANALYZE: Found 1 issue(s). | ACT: Using heuristic fixer (offline mode). | TEST: Risk assessed as medium (score=55). | REFLECT: Fix is not safe enough to auto-apply. Human review recommended.
+======================================================================
+mixed_issues.py
+issues: [('Code Quality', 'Low'), ('Reliability', 'High'), ('Maintainability', 'Medium')]
+risk: high 0 autofix: False ['Low severity issue detected.', 'High severity issue detected.', 'Medium severity issue detected.', 'Bare except was modified, verify correctness.', 'Fix removes or rewrites 1 print() call(s), which changes what users see.']
+diff:
+--- 
++++ 
+@@ -0,0 +1,2 @@
++import logging
++
+@@ -4 +6 @@
+-    print("computing ratio...")
++    logging.info("computing ratio...")
+@@ -8 +10,2 @@
+-    except:
++    except Exception as e:
++        # [BugHound] log or handle the error
+trace: PLAN: Planning a quick scan + fix proposal workflow. | ANALYZE: Using heuristic analyzer (offline mode). | ANALYZE: Found 3 issue(s). | ACT: Using heuristic fixer (offline mode). | TEST: Risk assessed as high (score=0). | REFLECT: Fix is not safe enough to auto-apply. Human review recommended.
+======================================================================
+print_spam.py
+issues: [('Code Quality', 'Low')]
+risk: medium 65 autofix: False ['Low severity issue detected.', 'Fix removes or rewrites 3 print() call(s), which changes what users see.']
+diff:
+--- 
++++ 
+@@ -0,0 +1,2 @@
++import logging
++
+@@ -3 +5 @@
+-        print("Entering greet()")
++        logging.info("Entering greet()")
+@@ -5,2 +7,2 @@
+-    print("Hello", name)
+-    print("Welcome!")
++    logging.info("Hello", name)
++    logging.info("Welcome!")
+trace: PLAN: Planning a quick scan + fix proposal workflow. | ANALYZE: Using heuristic analyzer (offline mode). | ANALYZE: Found 1 issue(s). | ACT: Using heuristic fixer (offline mode). | TEST: Risk assessed as medium (score=65). | REFLECT: Fix is not safe enough to auto-apply. Human review recommended.
+======================================================================
+(empty file)
+issues: []
+risk: high 0 autofix: False ['No fix was produced.']
+diff:
+(none)
+trace: PLAN: Planning a quick scan + fix proposal workflow. | ANALYZE: Using heuristic analyzer (offline mode). | ANALYZE: Found 0 issue(s). | ACT: No issues, returning original code unchanged. | ACT: No fix produced (refused, error, or empty output). | TEST: Risk assessed as high (score=0). | REFLECT: Fix is not safe enough to auto-apply. Human review recommended.
+======================================================================
+(comments only)
+issues: []
+risk: low 100 autofix: True ['No significant risks detected.']
+diff:
+(none)
+trace: PLAN: Planning a quick scan + fix proposal workflow. | ANALYZE: Using heuristic analyzer (offline mode). | ANALYZE: Found 0 issue(s). | ACT: No issues, returning original code unchanged. | TEST: Risk assessed as low (score=100). | REFLECT: Fix appears safe enough to auto-apply under current policy.
+======================================================================
+(nested bare except)
+issues: [('Reliability', 'High')]
+risk: high 0 autofix: False ['Fixed code is not valid Python (expected an indented block, line 7).']
+diff:
+--- 
++++ 
+@@ -5,2 +5,3 @@
+-        except:
+-            pass
++        except Exception as e:
++        # [BugHound] log or handle the error
++        pass
+trace: PLAN: Planning a quick scan + fix proposal workflow. | ANALYZE: Using heuristic analyzer (offline mode). | ANALYZE: Found 1 issue(s). | ACT: Using heuristic fixer (offline mode). | TEST: Risk assessed as high (score=0). | REFLECT: Fix is not safe enough to auto-apply. Human review recommended.
